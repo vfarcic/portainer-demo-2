@@ -1,0 +1,76 @@
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: devops-toolkit
+  labels:
+    app: devops-toolkit
+    component: web
+spec:
+  selector:
+    matchLabels:
+      app: devops-toolkit
+      component: web
+  template:
+    metadata:
+      labels:
+        app: devops-toolkit
+        component: web
+    spec:
+      containers:
+      - name: devops-toolkit
+        image: vfarcic/devops-toolkit-series:latest
+        ports:
+        - containerPort: 80
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 1Gi
+          requests:
+            cpu: 500m
+            memory: 512Mi
+---
+
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: devops-toolkit
+  labels:
+    app: devops-toolkit
+  annotations:
+    kubernetes.io/ingress.class: nginx
+spec:
+  rules:
+  - http:
+      paths:
+      - backend:
+          serviceName: devops-toolkit
+          servicePort: 80
+    host: devopstoolkitseries.com
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: devops-toolkit
+  labels:
+    app: devops-toolkit
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: 80
+    protocol: TCP
+    name: http
+  selector:
+    app: devops-toolkit
